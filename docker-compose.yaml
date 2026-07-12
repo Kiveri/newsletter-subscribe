@@ -4,6 +4,7 @@
 # - docker logs {CONTAINER ID} - логи контейнера
 
 services:
+  # сервис базы данных postgres
   newsletter-subscribe-postgres:
     # выбор image https://hub.docker.com/search?q=postgres
     image: postgres:18.4-bookworm
@@ -14,16 +15,29 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       # пароль пользователя базы данных
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      # имя логического раздела базы данных
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
-      # прокидывание данных из контейнера в локальную директорию (локальная директория:директория в контейнере)
+      # прокидывание данных из контейнера в директорию хост системы (директория хост системы:директория в контейнере)
       - ${PROJECT_ROOT}/out/pgdata:/var/lib/postgresql
       # политика перезапуска контейнера
     restart: always
 
+  # сервис проброса портов из контейнера на хост систему
+  newsletter-subscribe-postgres-port-forwarder:
+    # выбор image https://hub.docker.com/search?q=socat
+    image: alpine/socat:1.8.1.3
+    container_name: newsletter-subscribe-postgres-port-forwarder
+    # поддержка двунаправленного сетевого трафика между портом сервиса postgres и port-forwarder
+    command: tcp-listen:5432,fork,reuseaddr tcp-connect:newsletter-subscribe-postgres:5432
+    ports:
+      # проброс порта между хост системой и port-forwarder
+      - "127.0.0.1:5432:5432"
+
+  # сервис миграций базы данных postgres
   newsletter-subscribe-postgres-migrate:
     # выбор image https://hub.docker.com/search?q=migrate
     image: migrate/migrate:v4.19.1
-    # прокидывание данных из контейнера в локальную директорию (локальная директория:директория в контейнере)
+    # прокидывание данных из контейнера в директорию хост системы (директория хост системы:директория в контейнере)
     volumes:
       - ${PROJECT_ROOT}/scripts/migrations:/scripts/migrations

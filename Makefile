@@ -8,9 +8,8 @@ export
 export PROJECT_ROOT=$(shell pwd)
 
 
-# запуск окружения
+# запуск окружения, -d позволяет запускать в фоновом процессе не блокируя терминальную сессию
 env-up:
-	# -d позволяет запускать в фоновом процессе не блокируя терминальную сессию
 	@docker compose up -d newsletter-subscribe-postgres
 
 # остановка окружения
@@ -28,6 +27,14 @@ env-cleanup:
 	  echo "Очистка окружения отменена."; \
 	fi
 
+# запуск сервиса проброса портов в контейнере
+env-port-forward:
+	@docker compose up -d newsletter-subscribe-postgres-port-forwarder
+
+# остановка сервиса проброса портов в контейнере
+env-port-close:
+	@docker compose down newsletter-subscribe-postgres-port-forwarder
+
 
 # создание миграции
 migrate-create:
@@ -40,6 +47,7 @@ migrate-create:
 		-ext sql \
 		-dir /scripts/migrations \
 		-seq "$(name)"
+
 
 # применение миграций
 migrate-up:
