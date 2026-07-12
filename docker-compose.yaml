@@ -1,0 +1,29 @@
+# Команды docker:
+# - docker ps (-a) - список контейнеров
+# - docker container rm {CONTAINER ID} - удалить контейнер
+# - docker logs {CONTAINER ID} - логи контейнера
+
+services:
+  newsletter-subscribe-postgres:
+    # выбор image https://hub.docker.com/search?q=postgres
+    image: postgres:18.4-bookworm
+    # имя контейнера
+    container_name: newsletter-subscribe-env-postgres
+    environment:
+      # имя пользователя базы данных
+      - POSTGRES_USER=${POSTGRES_USER}
+      # пароль пользователя базы данных
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      # прокидывание данных из контейнера в локальную директорию (локальная директория:директория в контейнере)
+      - ${PROJECT_ROOT}/out/pgdata:/var/lib/postgresql
+      # политика перезапуска контейнера
+    restart: always
+
+  newsletter-subscribe-postgres-migrate:
+    # выбор image https://hub.docker.com/search?q=migrate
+    image: migrate/migrate:v4.19.1
+    # прокидывание данных из контейнера в локальную директорию (локальная директория:директория в контейнере)
+    volumes:
+      - ${PROJECT_ROOT}/scripts/migrations:/scripts/migrations
