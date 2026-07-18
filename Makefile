@@ -12,6 +12,11 @@ export PROJECT_ROOT=$(shell pwd)
 env-up:
 	@docker compose up -d newsletter-subscribe-postgres
 
+app-run:
+	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
+	go mod tidy && \
+	go run cmd/main.go
+
 # остановка окружения
 env-down:
 	@docker compose down newsletter-subscribe-postgres
